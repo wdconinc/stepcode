@@ -40,27 +40,19 @@ add_custom_target(express_verify DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/express_ver
 # Depending on whether we're using pre-generated sources or building them on
 # the fly, set up targets and source lists.
 if(SC_GENERATE_LP_SOURCES)
-  LEMON_TARGET(ExpParser expparse.y)
-  PERPLEX_TARGET(ExpScanner expscan.l)
-  ADD_PERPLEX_LEMON_DEPENDENCY(ExpScanner ExpParser)
-  set(SCL_SO_SRCS
-    ${LEMON_ExpParser_SRC}
-    ${PERPLEX_ExpScanner_SRC}
-    )
+  LEMON_TARGET(ExpParser expparse.y expparse.c
+               COMPILE_FLAGS "-p -c"
+               DEFINES_FILE "expparse.h")
+  RE2C_TARGET(ExpScanner expscan.l expscan.c
+              COMPILE_FLAGS "-W -Wno-match-empty-string -r -c --tags"
+              DEFINES_FILE "expscan.h")
+  ADD_RE2C_LEMON_DEPENDENCY(ExpScanner ExpParser)
 
   add_library(objlib_expscan_c OBJECT ${PERPLEX_ExpScanner_SRC})
   set_property(TARGET objlib_expscan_c PROPERTY POSITION_INDEPENDENT_CODE ON)
 
   add_library(objlib_expparse_c OBJECT ${LEMON_ExpParser_SRC})
   set_property(TARGET objlib_expparse_c PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-  LEMON_TARGET(ExpParser_static expparse.y)
-  PERPLEX_TARGET(ExpScanner_static expscan.l)
-  ADD_PERPLEX_LEMON_DEPENDENCY(ExpScanner_static ExpParser_static)
-  set(SCL_STATIC_SRCS
-    ${LEMON_ExpParser_static_SRC}
-    ${PERPLEX_ExpScanner_static_SRC}
-    )
 else(SC_GENERATE_LP_SOURCES)
   add_subdirectory(generated)
   include_directories(generated)
@@ -91,6 +83,7 @@ set(EXPRESS_SOURCES
   ordered_attrs.cc
   info.c
   factory.c
+  lexsupport.c
  )
 
 set(EXPRESS_OBJS)
@@ -123,8 +116,9 @@ set(CHECK_EXPRESS_SOURCES
 SET(EXPRESS_PRIVATE_HDRS
   exptoks.h
   stack.h
+  lexsupport.h
   )
-
+  
 SC_ADDLIB(express "dummy.c" "base" SO_SRCS "${EXPRESS_OBJS}")
 
 if(SC_GENERATE_LP_SOURCES)
