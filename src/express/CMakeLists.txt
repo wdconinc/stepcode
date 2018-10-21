@@ -2,6 +2,7 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${SC_SOURCE_DIR}/src/base
+  ${SC_SOURCE_DIR}/src/auxlib
   )
 
 # Set up the information we need to feed the generated source management
@@ -48,10 +49,10 @@ if(SC_GENERATE_LP_SOURCES)
               DEFINES_FILE "expscan.h")
   ADD_RE2C_LEMON_DEPENDENCY(ExpScanner ExpParser)
 
-  add_library(objlib_expscan_c OBJECT ${PERPLEX_ExpScanner_SRC})
+  add_library(objlib_expscan_c OBJECT ${RE2C_ExpScanner_OUTPUTS})
   set_property(TARGET objlib_expscan_c PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-  add_library(objlib_expparse_c OBJECT ${LEMON_ExpParser_SRC})
+  add_library(objlib_expparse_c OBJECT ${LEMON_ExpParser_OUTPUTS})
   set_property(TARGET objlib_expparse_c PROPERTY POSITION_INDEPENDENT_CODE ON)
 else(SC_GENERATE_LP_SOURCES)
   add_subdirectory(generated)
@@ -120,9 +121,9 @@ SET(EXPRESS_PRIVATE_HDRS
 SC_ADDLIB(express "dummy.c" "base" SO_SRCS "${EXPRESS_OBJS}")
 
 if(SC_GENERATE_LP_SOURCES)
-  set_property(TARGET objlib_expparse_c objlib_lexact_c objlib_express_c
-               APPEND PROPERTY INCLUDE_DIRECTORIES "${PERPLEX_ExpScanner_INCLUDE_DIR}")
-  set_property(TARGET objlib_expscan_c objlib_lexact_c objlib_express_c
+  set_property(TARGET objlib_expparse_c objlib_express_c
+               APPEND PROPERTY INCLUDE_DIRECTORIES "${RE2C_ExpScanner_INCLUDE_DIR}")
+  set_property(TARGET objlib_expscan_c objlib_express_c
                APPEND PROPERTY INCLUDE_DIRECTORIES "${LEMON_ExpParser_INCLUDE_DIR}")
 endif(SC_GENERATE_LP_SOURCES)
 
@@ -137,7 +138,7 @@ endif(SC_GENERATE_LP_SOURCES)
 if(NOT SC_IS_SUBBUILD AND SC_GIT_VERSION)
   add_dependencies(express version_string)
 endif(NOT SC_IS_SUBBUILD AND SC_GIT_VERSION)
-SC_ADDEXEC("check-express" "${CHECK_EXPRESS_SOURCES}" "express;base"  ${SC_EXEC_NOINSTALL})
+SC_ADDEXEC("check-express" "${CHECK_EXPRESS_SOURCES}" "express;base;auxlib"  ${SC_EXEC_NOINSTALL})
 
 if(SC_ENABLE_TESTING)
   add_subdirectory(test)
