@@ -133,7 +133,7 @@ extern SC_EXPRESS_EXPORT int __SCOPE_search_id;
 /* function prototypes */
 /***********************/
 
-extern SC_EXPRESS_EXPORT Variable VARfind PROTO( ( Scope, char * ) );
+extern SC_EXPRESS_EXPORT Symbol *VARfind PROTO( ( Scope, char * ) );
 extern SC_EXPRESS_EXPORT Schema   SCHEMAcreate PROTO( ( void ) );
 extern SC_EXPRESS_EXPORT void     SCHEMAinitialize PROTO( ( void ) );
 extern SC_EXPRESS_EXPORT void     SCHEMAadd_use PROTO( ( Schema, Symbol *, Symbol *, Symbol * ) );
