@@ -181,6 +181,45 @@ int main(int argc, char *argv[])
 
     Severity readSev = sfile.Error().severity(); //otherwise, errors from reading will be wiped out by sfile.WriteExchangeFile()
 
+    map<string,int> count[3];
+    for (auto i = 0; i < instance_list.InstanceCount(); i++) {
+        auto instance = instance_list.GetApplication_instance(i);
+        auto entityname = string(instance->EntityName());
+        cout << entityname << ":" << endl;
+        while (auto attribute = instance->NextAttribute()) {
+            cout << " " << attribute->Name() << ": " << *attribute << endl;
+
+            int type = -1;
+            if (strcmp(attribute->Name(), "id") == 0) type = 0;
+            if (strcmp(attribute->Name(), "name") == 0) type = 1;
+            if (strcmp(attribute->Name(), "description") == 0) type = 2;
+
+            if (type >= 0) {
+                auto attrname = attribute->String();
+                if (attrname->empty()) continue;
+
+                auto oldname = string(attrname->c_str());
+                oldname.erase(
+                    remove(oldname.begin(), oldname.end(), '\'' ),
+                    oldname.end()
+                );
+
+                auto key = entityname + " " + oldname;
+                cout << "  key = " << key;
+                if (count[type].count(key) == 0) {
+                    count[type][key] = 1;
+                    cout << " " << count[type][key] << endl;
+                    *attrname = "'" + oldname + "'"; // don't add index on first entry
+                } else {
+                    count[type][key] ++;
+                    cout << " " << count[type][key] << endl;
+                    *attrname = "'" + oldname + " " + to_string(count[type][key]) + "'";
+                }
+            }
+            cout << " " << attribute->Name() << ": " << *attribute << endl;
+        }
+    }
+
     cout << argv[0] << ": write file ..." << endl;
     if(argc == sc_optind + 2) {
         flnm = argv[sc_optind + 1];
