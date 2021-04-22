@@ -181,6 +181,36 @@ int main(int argc, char *argv[])
 
     Severity readSev = sfile.Error().severity(); //otherwise, errors from reading will be wiped out by sfile.WriteExchangeFile()
 
+    for (auto i = 0; i < instance_list.InstanceCount(); i++) {
+        auto instance = instance_list.GetApplication_instance(i);
+        auto entityname = string(instance->EntityName());
+        cout << entityname << ":" << endl;
+        while (auto attribute = instance->NextAttribute()) {
+            cout << " " << attribute->Name() << ": " << *attribute << endl;
+
+            if (strcmp(attribute->Name(), "id") == 0 ||
+                strcmp(attribute->Name(), "name") == 0 ||
+                strcmp(attribute->Name(), "description") == 0) {
+
+                auto attrname = attribute->String();
+                if (attrname->empty()) continue;
+
+                auto newname = string(attrname->c_str());
+                newname.erase(
+                    remove(newname.begin(), newname.end(), '\'' ),
+                    newname.end()
+                );
+
+                char chars[] = " */?[]{}\'\"\\#\t";
+                for (char ch: chars) {
+                    while (newname.find(ch) != string::npos)
+                        newname.replace(newname.find(ch), 1, "_");
+                }
+                *attrname = "'" + newname + "'";
+            }
+        }
+    }
+
     cout << argv[0] << ": write file ..." << endl;
     if(argc == sc_optind + 2) {
         flnm = argv[sc_optind + 1];
